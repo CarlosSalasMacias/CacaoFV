@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Análisis de bienestar familiar y sostenibilidad de sistemas agroforestales con cacao de Fortaleza del Valle."><title>CacaoFV · Investigación en campo</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<header><a class="brand" href="./" aria-label="CacaoFV, inicio"><span class="seed" aria-hidden="true">◒</span> Cacao<span>FV</span></a><span class="header-note">FORTALEZA DEL VALLE · ESPACIO DE INVESTIGACIÓN</span><span class="private">● Análisis local y privado</span></header>
+<main>
+<div class="eyebrow">DEL CAMPO A LOS RESULTADOS</div>
+<h1>Una cosecha de datos.<br><em>Dos miradas a su valor.</em></h1>
+<p class="intro">Explore el bienestar de las familias productoras y la sostenibilidad de sus fincas a partir de la encuesta de KoboToolbox.</p>
+<div class="workspace">
+<aside>
+<section class="card upload"><span class="step">01 / PREPARAR</span><h2>Su base de trabajo</h2><p>Exporte de Kobo en <b>XLSX</b>, con nombres y valores XML y todas las hojas de certificaciones y ventas.</p>
+<label class="file-zone" for="archivo"><span aria-hidden="true">↥</span><strong>Seleccionar Excel de Kobo</strong><small id="filename">Un archivo .xlsx · hasta 20 MB</small></label><input type="file" id="archivo" accept=".xlsx" class="file-input">
+<label for="diseno">Diseño de la muestra</label><select id="diseno"><option value="NO_DEFINIDO">Pendiente / conveniencia: descriptivos</option><option value="aleatorio_simple_independiente">Aleatorio simple, hogares independientes</option><option value="censo">Censo: descriptivos</option><option value="complejo">Estratos, conglomerados o ponderación</option></select>
+<p class="hint">Active las pruebas e intervalos solo si el diseño corresponde. El piloto siempre se analiza de forma descriptiva.</p>
+<button id="analizar" class="primary" disabled>Analizar mi base <span>→</span></button>
+<div class="or">o comience con un ejemplo</div><button id="demo" class="secondary">Probar con 120 hogares ficticios</button>
+<p class="period">Periodo común<br><b>1 nov. 2025 — 31 oct. 2026</b></p></section>
+<div class="privacy-note"><b>Sus respuestas permanecen aquí.</b><p>El archivo se procesa en este navegador. No se envía a Kobo, GitHub ni a un servidor de análisis. Cierre la pestaña para liberar los datos.</p><p>Se necesita internet para cargar el motor estadístico. No introduzca credenciales de Kobo.</p></div>
+</aside>
+<section class="results" aria-label="Resultados">
+<div id="status" role="status" aria-live="polite" class="status" hidden></div>
+<div id="empty" class="empty card"><div class="abstract" aria-hidden="true"><i></i><i></i><i></i></div><span class="step">02 / EXPLORAR</span><h2>Las preguntas del estudio,<br>en un solo lugar.</h2><div class="study"><span>01</span><div><h3>Bienestar socioeconómico</h3><p>Compare hogares sin certificación y con certificación estable. Examine aportes, diferencias y su incertidumbre.</p><small>TESIS DOCTORAL · PETER</small></div></div><div class="study"><span>02</span><div><h3>Sostenibilidad del sistema</h3><p>Relativización conjunta de indicadores económicos, ecológicos y sociales, con la misma referencia para todas las fincas.</p><small>TESIS DE PREGRADO</small></div></div><div class="empty-footer">Primero cargue una base o explore la demostración ficticia.</div></div>
+<div id="output" hidden><div class="result-heading"><div><span class="step">02 / EXPLORAR</span><h2>Lectura de la base</h2></div><button id="reset" class="text-button">Limpiar sesión</button></div><div id="badge" class="badge"></div><div id="metrics" class="metrics"></div>
+<nav class="tabs" aria-label="Vistas de resultados"><button class="active" data-view="doctoral">Doctorado</button><button data-view="pregrado">Pregrado</button><button data-view="calidad">Calidad y método</button></nav>
+<div id="panel"></div><div class="download-bar"><div><strong>Lleve los resultados a su tesis</strong><p>Informes, tablas CSV y registro reproducible de la ejecución.</p></div><button id="download" class="primary">Descargar resultados ZIP ↓</button></div></div>
+</section></div>
+<section class="method-strip"><div><span>UNIDAD DE ANÁLISIS</span><b>Un hogar productor</b></div><div><span>COMPARACIÓN PRINCIPAL</span><b>C1 estable frente a C0 sin certificar</b></div><div><span>SOSTENIBILIDAD</span><b>Tres dimensiones · igual ponderación</b></div></section>
+</main><footer><span>CacaoFV <small>v0.1 · Aplicación de investigación</small></span><a href="docs/GUIA.md" target="_blank" rel="noopener">Guía y límites del análisis ↗</a><a href="https://github.com/CarlosSalasMacias/CacaoFV" target="_blank" rel="noopener">Código y metodología ↗</a></footer>
+<script src="app.js" defer></script></body></html>

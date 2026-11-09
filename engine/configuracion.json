@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "seed": 20261105,
+  "diseno": "aleatorio_simple_independiente",
+  "alpha": 0.05,
+  "bootstrap_replicas": 5000,
+  "modelo_min_n": 40,
+  "modelo_min_grupo": 15,
+  "pregrado": {
+    "min_cobertura": 0.8,
+    "social_min_validos": 4,
+    "pesos_dimensiones": {
+      "economica": 0.3333333333333333,
+      "ecologica": 0.3333333333333333,
+      "social": 0.3333333333333333
+    },
+    "incluir_agua": false
+  }
+}

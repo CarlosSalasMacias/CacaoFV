@@ -1,0 +1,7 @@
+__pycache__/
+tests/_salida/
+node_modules/
+*.xlsx
+*.zip
+*_CAMPO_*
+_qa/

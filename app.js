@@ -19,7 +19,13 @@ function render(){
   if(view==='calidad')$('panel').innerHTML=seccion('Composición de la base','C0: sin certificación anual; C1: estable y total; C2: cobertura parcial; C3: transición; CU: información insuficiente. C2, C3 y CU se describen por separado.',Object.entries(result.grupos).map(([grupo,n])=>({grupo,n})),[['grupo','Grupo'],['n','Hogares']])+seccion('Avisos para revisar','Los errores que impiden el análisis detienen la carga. Estos avisos conservan la incertidumbre, sin corregir respuestas automáticamente.',result.avisos,[['id_hogar','Hogar'],['campo','Campo'],['mensaje','Aviso']])+seccion('Cobertura de indicadores','Revise dónde se pierden observaciones antes de interpretar diferencias.',result.cobertura,[['grupo','Grupo'],['indicador','Indicador'],['n_total','Total'],['n_valido','Válidos'],['n_NA','No aplica'],['n_otros_faltantes','Otros faltantes']])+'<div class="callout">'+(result.etapa==='SIMULACION'?'La base ficticia permite probar el cálculo de pruebas e intervalos.':'Esta ejecución resume los hogares de la base. El Excel de Kobo registra respuestas, mientras que el procedimiento de selección debe documentarse en la tesis.')+'</div>';
 }
 function renderGrafica(){
-  const grafica=result.graficas?.[view];
+  const graficas=result.graficas?.[view]??[];
+  const selector=$('seleccionar-grafica');
+  const seleccionAnterior=selector.value;
+  selector.innerHTML=graficas.map(g=>'<option value="'+escape(g.nombre)+'">'+escape(g.titulo)+'</option>').join('');
+  if(graficas.some(g=>g.nombre===seleccionAnterior))selector.value=seleccionAnterior;
+  $('selector-grafica').hidden=graficas.length<2;
+  const grafica=graficaSeleccionada();
   $('graficas').hidden=view==='calidad';
   $('grafica-contenido').hidden=!grafica;
   $('grafica-vacia').hidden=Boolean(grafica);
@@ -32,6 +38,10 @@ function renderGrafica(){
     imagen.alt='';
   }
 }
+function graficaSeleccionada(){
+  const graficas=result?.graficas?.[view]??[];
+  return graficas.find(g=>g.nombre===$('seleccionar-grafica').value)??graficas[0];
+}
 function status(message,error=false){$('status').hidden=false;$('status').classList.toggle('error',error);$('status').textContent=message;}
 function controls(){ $('demo').disabled=busy;$('archivo').disabled=busy; }
 function clearResult(){
@@ -43,7 +53,7 @@ function clearResult(){
 }
 function start(buffer,name,demo){
   clearResult();busy=true;controls();
-  if(!worker){worker=new Worker('worker.js?v=0.3.0');worker.onmessage=({data})=>{
+  if(!worker){worker=new Worker('worker.js?v=0.4.0');worker.onmessage=({data})=>{
     if(data.type==='progress')status(data.message);
     if(data.type==='error'){busy=false;controls();const lines=data.message.split('\n').filter(Boolean);status('No se pudo analizar. '+(lines.findLast(s=>s.includes('ErrorDatos:'))||lines.at(-1)||data.message),true);}
     if(data.type==='result'){busy=false;controls();result=data.result;zip=data.zip;$('status').hidden=true;$('empty').hidden=true;$('output').hidden=false;
@@ -93,7 +103,7 @@ function descargarBorrador(apartado){
 $('metodologia').onclick=()=>descargarBorrador('metodologia');
 $('resultados-discusion').onclick=()=>descargarBorrador('resultados_discusion');
 function descargarGrafica(formato){
-  const grafica=result?.graficas?.[view];
+  const grafica=graficaSeleccionada();
   if(!grafica)return;
   const contenido=formato==='png'
     ? Uint8Array.from(atob(grafica.png),c=>c.charCodeAt(0))
@@ -101,6 +111,7 @@ function descargarGrafica(formato){
   const tipo=formato==='png'?'image/png':'image/svg+xml';
   descargar(contenido,tipo,`CacaoFV_${result.etapa}_${grafica.nombre}.${formato}`);
 }
+$('seleccionar-grafica').onchange=renderGrafica;
 $('grafica-png').onclick=()=>descargarGrafica('png');
 $('grafica-svg').onclick=()=>descargarGrafica('svg');
 $('download').onclick=()=>descargar(zip,'application/zip',`CacaoFV_${result.etapa}_resultados.zip`);

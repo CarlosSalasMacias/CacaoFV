@@ -1,4 +1,4 @@
-# Guía de uso y alcance · v0.3
+# Guía de uso y alcance · v0.4
 
 ## Exportar desde Kobo
 
@@ -34,7 +34,9 @@ El índice global promedia las tres dimensiones con igual ponderación y requier
 
 ## Gráficas
 
-La pestaña Doctorado muestra la mediana y los percentiles 25 y 75 del beneficio familiar en C0 y C1. La pestaña Pregrado muestra las medias por grupo de las tres dimensiones y del índice global. Cada gráfica indica los hogares con datos válidos y puede descargarse como PNG a 300 dpi o SVG editable. Ambos formatos también se incluyen en el ZIP.
+La pestaña Doctorado muestra la mediana y los percentiles 25 y 75 del beneficio familiar en C0 y C1. En Pregrado se abre el Biograma con las tres dimensiones. El selector de gráficas permite consultar también las telarañas de indicadores activos de cada dimensión y el gráfico de puntos que incluye el índice global. Los biogramas emplean la misma escala de 0 a 1 y muestran el número de hogares con datos válidos para cada eje. Una telaraña de detalle requiere al menos tres indicadores activos. Si a un grupo le falta un eje, se dibujan solo sus puntos disponibles.
+
+Cada gráfica puede descargarse como PNG a 300 dpi o SVG editable. Ambos formatos se incluyen en el ZIP, junto con las tablas de las medias por dimensión e indicador.
 
 ## Resultados y privacidad
 

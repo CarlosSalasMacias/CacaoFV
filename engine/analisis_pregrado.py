@@ -87,11 +87,17 @@ def ejecutar(entrada,salida):
     comparaciones=holm(pd.DataFrame([welch(indices,c,permitido) for c in ["economica","ecologica","social","IS","social_comun","IS_comun"]]))
     detalle=x.add_prefix("crudo_").join(z.add_prefix("I_")); detalle.insert(0,"id_hogar",d.id_hogar)
     cobertura=[]
+    resumen_normalizados=[]
+    activos=param.loc[param.activo,'indicador'].tolist()
     for g,s in d.groupby("grupo_cert"):
         for c in x:
             vals=x.loc[s.index,c];cobertura.append(dict(grupo=g,indicador=c,n_total=len(s),n_valido=int(vals.notna().sum()),n_NA=int(na.loc[s.index,c].sum()),n_otros_faltantes=int((vals.isna()&~na.loc[s.index,c]).sum())))
+        for c in activos:
+            valores=z.loc[s.index,c].dropna()
+            resumen_normalizados.append(dict(grupo=g,indice=c,n=len(valores),media=valores.mean()))
     for name,t in {"indicadores_crudos_normalizados":detalle,"parametros_relativizacion":param,"indices_hogares":indices,
-                   "resumen_indices":pd.DataFrame(resumen),"comparaciones_indices":comparaciones,"cobertura_indicadores":pd.DataFrame(cobertura)}.items(): guardar(t,out/(name+".csv"))
+                   "resumen_indices":pd.DataFrame(resumen),"comparaciones_indices":comparaciones,"cobertura_indicadores":pd.DataFrame(cobertura),
+                   "resumen_indicadores_normalizados":pd.DataFrame(resumen_normalizados,columns=['grupo','indice','n','media'])}.items(): guardar(t,out/(name+".csv"))
     reporte(out,"Sostenibilidad por relativización conjunta",md,[("Resumen de dimensiones e índices",pd.DataFrame(resumen)),("Comparación C1 frente a C0",comparaciones),("Referencias comunes de relativización",param)],
             ["Mínimos y máximos se calculan sobre todos los hogares elegibles del archivo, incluidos C2/C3, una sola vez; nunca por grupo de certificación.",
              "Índices relativos a esta muestra. Uno no acredita sostenibilidad absoluta; una etiqueta baja no demuestra colapso.",

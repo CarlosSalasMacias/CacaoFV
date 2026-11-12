@@ -5,7 +5,7 @@ import pandas as pd
 from esquema import CODIGOS, CAMPOS, CERT_COLS, VENTAS_COLS, ESTADOS_COLS
 from comun import ErrorDatos
 
-VERSION = '0.3.0'
+VERSION = '0.4.0'
 PERIODO = ('2025-11-01', '2026-10-31')
 
 def texto(v):
@@ -156,7 +156,8 @@ def ejecutar_archivo(contenido, nombre, diseno='NO_DEFINIDO', demo=False):
     from graficas import generar_graficas
     ejecucion=json.loads((raiz/'doctoral'/'ejecucion.json').read_text(encoding='utf-8'))
     result['documentos']=generar_documentos(result,md,ejecucion,leer('pregrado/comparaciones_indices.csv'))
-    result['graficas']=generar_graficas(raiz,etapa,leer('doctoral/resumen_por_grupo.csv'),result['sostenibilidad'])
+    result['graficas']=generar_graficas(raiz,etapa,leer('doctoral/resumen_por_grupo.csv'),result['sostenibilidad'],
+                                        leer('pregrado/resumen_indicadores_normalizados.csv'))
     for tesis, apartados in result['documentos'].items():
         for apartado, contenido_md in apartados.items():
             (raiz/tesis/(apartado+'.md')).write_bytes(contenido_md.encode('utf-8'))

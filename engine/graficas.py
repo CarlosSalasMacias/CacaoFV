@@ -1,5 +1,7 @@
 """Figuras descriptivas basadas en las mismas tablas que se exportan a CSV."""
 from base64 import b64encode
+from functools import partial
+from math import cos, pi, sin
 from pathlib import Path
 
 import matplotlib as mpl
@@ -13,10 +15,18 @@ GRUPOS = {'C0': ('Sin certificación (C0)', '#515963', 'o'),
           'C1': ('Certificación estable (C1)', '#214c74', 'D')}
 DIMENSIONES = {'economica': 'Económica', 'ecologica': 'Ecológica',
                'social': 'Social', 'IS': 'Índice global'}
+INDICADORES = {
+    'economica': {'E1': 'Margen operativo', 'E2': 'Beneficio por persona',
+                  'E3': 'Fuentes económicas', 'E4': 'Registro económico', 'E5': 'Apoyo técnico aplicado'},
+    'ecologica': {'A1': 'Prácticas de manejo', 'A2': 'Menor frecuencia de plaguicidas',
+                  'A3': 'Menor conversión de bosque', 'A4': 'Riqueza arbórea declarada', 'A5': 'Prácticas de agua'},
+    'social': {'S1': 'Continuidad alimentaria', 'S2': 'Acceso a salud', 'S3': 'Asistencia escolar',
+               'S4': 'Acceso a transporte', 'S5': 'Participación en decisiones', 'S6': 'Satisfacción con el SAF'},
+}
 
 
-def lienzo(titulo, etapa, nota):
-    fig = Figure(figsize=(7.0, 4.0), facecolor='white')
+def lienzo(titulo, etapa, nota, alto=4.0):
+    fig = Figure(figsize=(7.0, alto), facecolor='white')
     FigureCanvasAgg(fig)
     marca = {'SIMULACION': 'Simulación ficticia', 'PILOTO': 'Piloto descriptivo'}.get(etapa, 'Datos de campo')
     fig.text(.04, .93, titulo, fontsize=13, fontweight='bold', color='#19232e')
@@ -88,19 +98,73 @@ def sostenibilidad(resumen, etapa):
     return fig
 
 
-def generar_graficas(raiz, etapa, resumen_doctoral, resumen_pregrado):
+def telarana(resumen, etapa, ejes, titulo):
+    filas = {(f['grupo'], f['indice']): f for f in resumen
+             if f['grupo'] in GRUPOS and f['indice'] in ejes and f['n'] > 0 and valido(f['media'])}
+    if len(ejes) < 3 or not filas:
+        return None
+    fig = lienzo(titulo, etapa,
+                 'Cada eje muestra una media relativa de 0 a 1. n = hogares con datos válidos por eje.\n'
+                 'Si falta una media, el grupo se representa con puntos en los ejes disponibles.', alto=5.0)
+    ax = fig.add_axes([.06, .22, .88, .59], aspect='equal')
+    ax.set(xlim=(-1.75, 1.75), ylim=(-1.34, 1.40))
+    ax.set_axis_off()
+    angulos = [pi/2 - 2*pi*i/len(ejes) for i in range(len(ejes))]
+    radios = [(cos(a), sin(a)) for a in angulos]
+    for nivel in (.25, .50, .75, 1):
+        contorno = [(nivel*x, nivel*y) for x,y in radios]
+        contorno.append(contorno[0])
+        ax.plot(*zip(*contorno), color='#8c949d' if nivel == 1 else '#dfe4e8', linewidth=.75)
+        ax.text(.035, nivel-.02, f'{nivel:g}'.replace('.', ','), color='#515963', fontsize=8,
+                va='top', zorder=2.5)
+    ax.text(.035, -.02, '0', color='#515963', fontsize=8, va='top')
+    for (clave, nombre), (x,y) in zip(ejes.items(), radios):
+        ax.plot([0,x], [0,y], color='#c8cfd6', linewidth=.7, zorder=1)
+        alineacion = 'left' if x > .2 else 'right' if x < -.2 else 'center'
+        cuentas = ' · '.join(f'{g} n={filas.get((g,clave),{}).get("n",0)}' for g in GRUPOS)
+        ax.text(1.11*x, 1.11*y, f'{nombre}\n{cuentas}', ha=alineacion,
+                va='bottom' if y > .85 else 'top' if y < -.85 else 'center', fontsize=8.5, color='#19232e')
+    for grupo, (nombre, color, marcador) in GRUPOS.items():
+        puntos = []
+        for clave, (x,y) in zip(ejes,radios):
+            fila = filas.get((grupo,clave))
+            if fila:
+                puntos.append((x*fila['media'], y*fila['media']))
+        if not puntos:
+            continue
+        completa = len(puntos) == len(ejes)
+        if completa:
+            puntos.append(puntos[0])
+        ax.plot(*zip(*puntos), color=color, marker=marcador, markersize=4.5, linewidth=1.55,
+                linestyle=('--' if grupo == 'C0' else '-') if completa else 'none', label=nombre, zorder=4)
+    fig.legend(loc='lower center', bbox_to_anchor=(.5,.135), ncol=2, frameon=False, fontsize=9)
+    return fig
+
+
+def generar_graficas(raiz, etapa, resumen_doctoral, resumen_pregrado, resumen_normalizados):
     """Guarda SVG editable y PNG de 300 dpi. Envía los mismos archivos a la interfaz."""
     graficas = {}
     with mpl.rc_context({'font.family': 'DejaVu Sans', 'font.size': 10, 'svg.fonttype': 'none',
                          'svg.hashsalt': 'cacaofv'}):
-        especificaciones = (
-            ('doctoral', 'beneficio_familiar', 'Mediana y rango intercuartílico del beneficio familiar en C0 y C1.',
-             beneficio, resumen_doctoral),
-            ('pregrado', 'sostenibilidad', 'Medias de las tres dimensiones y del índice global en C0 y C1.',
-             sostenibilidad, resumen_pregrado),
-        )
-        for tesis, nombre, alt, dibujar, resumen in especificaciones:
-            fig = dibujar(resumen, etapa)
+        dimensiones = {k: v for k,v in DIMENSIONES.items() if k != 'IS'}
+        especificaciones = [
+            ('doctoral', 'beneficio_familiar', 'Beneficio familiar', 'Mediana y rango intercuartílico del beneficio familiar en C0 y C1.',
+             partial(beneficio, resumen_doctoral, etapa)),
+            ('pregrado', 'biograma_dimensiones', 'Biograma por dimensiones', 'Telaraña de medias de las dimensiones económica, ecológica y social.',
+             partial(telarana, resumen_pregrado, etapa, dimensiones, 'Biograma de sostenibilidad por dimensiones')),
+            ('pregrado', 'sostenibilidad', 'Dimensiones e índice global', 'Medias de las tres dimensiones y del índice global en C0 y C1.',
+             partial(sostenibilidad, resumen_pregrado, etapa)),
+        ]
+        activos = {fila['indice'] for fila in resumen_normalizados}
+        for dimension, etiquetas in INDICADORES.items():
+            ejes = {clave: nombre for clave,nombre in etiquetas.items() if clave in activos}
+            nombre = dimensiones[dimension].lower()
+            titulo = f'Biograma de la dimensión {nombre}'
+            especificaciones.append(('pregrado', f'biograma_{dimension}', f'Indicadores de la dimensión {nombre}',
+                                    f'Telaraña de indicadores normalizados de la dimensión {nombre}.',
+                                    partial(telarana, resumen_normalizados, etapa, ejes, titulo)))
+        for tesis, nombre, titulo, alt, dibujar in especificaciones:
+            fig = dibujar()
             if fig is None:
                 continue
             salida = Path(raiz) / tesis / 'graficas'
@@ -108,7 +172,9 @@ def generar_graficas(raiz, etapa, resumen_doctoral, resumen_pregrado):
             png, svg = salida / (nombre + '.png'), salida / (nombre + '.svg')
             fig.savefig(png, dpi=300)
             fig.savefig(svg, metadata={'Date': None})
-            graficas[tesis] = {'nombre': nombre, 'alt': alt, 'png': b64encode(png.read_bytes()).decode('ascii'),
-                               'svg': svg.read_text(encoding='utf-8')}
+            graficas.setdefault(tesis, []).append({
+                'nombre': nombre, 'titulo': titulo, 'alt': alt,
+                'png': b64encode(png.read_bytes()).decode('ascii'), 'svg': svg.read_text(encoding='utf-8'),
+            })
             fig.clear()
     return graficas

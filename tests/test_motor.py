@@ -64,10 +64,21 @@ class Motor(unittest.TestCase):
         self.assertEqual((bf['n_C0'],bf['n_C1']),(39,71));self.assertAlmostEqual(bf['diferencia_C1_C0'],1702.884112,places=5)
         with zipfile.ZipFile(io.BytesIO(z)) as f:
             self.assertIn('doctoral/reporte.html',f.namelist());self.assertIn('pregrado/indices_hogares.csv',f.namelist())
-            for tesis, nombre in [('doctoral','beneficio_familiar'),('pregrado','sostenibilidad')]:
-                self.assertEqual(r['graficas'][tesis]['nombre'],nombre)
-                self.assertIn('Simulación ficticia',f.read(f'{tesis}/graficas/{nombre}.svg').decode('utf-8'))
-                self.assertTrue(f.read(f'{tesis}/graficas/{nombre}.png').startswith(b'\x89PNG'))
+            self.assertEqual([g['nombre'] for g in r['graficas']['doctoral']],['beneficio_familiar'])
+            self.assertEqual([g['nombre'] for g in r['graficas']['pregrado']],
+                             ['biograma_dimensiones','sostenibilidad','biograma_economica','biograma_ecologica','biograma_social'])
+            for tesis, graficas in r['graficas'].items():
+                for g in graficas:
+                    ruta=f'{tesis}/graficas/{g["nombre"]}'
+                    self.assertIn('Simulación ficticia',f.read(ruta+'.svg').decode('utf-8'))
+                    self.assertTrue(f.read(ruta+'.png').startswith(b'\x89PNG'))
+            normalizados=pd.read_csv(f.open('pregrado/resumen_indicadores_normalizados.csv'))
+            detalle=pd.read_csv(f.open('pregrado/indicadores_crudos_normalizados.csv'))
+            hogares=pd.read_csv(f.open('pregrado/indices_hogares.csv'))
+            c1=detalle.merge(hogares[['id_hogar','grupo_cert']],on='id_hogar').query('grupo_cert=="C1"')
+            e1=normalizados.query('grupo=="C1" and indice=="E1"').iloc[0]
+            self.assertAlmostEqual(e1.media,c1.I_E1.mean())
+            self.assertEqual(e1.n,c1.I_E1.count())
             for tesis in ('doctoral','pregrado'):
                 for apartado in ('metodologia','resultados_discusion'):
                     borrador=r['documentos'][tesis][apartado]
@@ -103,7 +114,18 @@ class Motor(unittest.TestCase):
         self.assertEqual(r['etapa'],'CAMPO')
         self.assertEqual(r['diseno'],'NO_DEFINIDO')
         self.assertTrue(all(x['p']=='' for x in r['economicos']))
-        self.assertIn('Datos de campo',r['graficas']['doctoral']['svg'])
+        self.assertIn('Datos de campo',r['graficas']['doctoral'][0]['svg'])
         self.assertIn('Esta ejecución se limitó a descripciones',r['documentos']['doctoral']['metodologia'])
+
+    def test_biograma_no_cierra_perfil_incompleto(self):
+        from graficas import telarana
+        ejes={'economica':'Económica','ecologica':'Ecológica','social':'Social'}
+        filas=[dict(grupo='C0',indice=eje,n=8,media=.5) for eje in ('economica','social')]
+        filas += [dict(grupo='C1',indice=eje,n=9,media=.6) for eje in ejes]
+        fig=telarana(filas,'PILOTO',ejes,'Biograma')
+        perfiles=[linea for linea in fig.axes[0].lines if 'certificación' in linea.get_label().lower()]
+        self.assertEqual([len(linea.get_xdata()) for linea in perfiles],[2,4])
+        self.assertEqual(perfiles[0].get_linestyle(),'None')
+        self.assertIn('C0 n=0 · C1 n=9',' '.join(texto.get_text() for texto in fig.axes[0].texts))
 
 if __name__=='__main__': unittest.main()

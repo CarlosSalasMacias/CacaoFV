@@ -11,7 +11,7 @@ async function iniciar(){
   await py.loadPackage(['pandas','scipy','statsmodels','micropip']);
   await py.runPythonAsync("import micropip\nawait micropip.install('openpyxl==3.1.5')");
   py.FS.mkdirTree('/app');
-  for(const file of ['esquema.py','comun.py','analisis_doctoral.py','analisis_pregrado.py','configuracion.json','aplicacion.py']){
+  for(const file of ['esquema.py','comun.py','analisis_doctoral.py','analisis_pregrado.py','configuracion.json','redaccion.py','aplicacion.py']){
     const r=await fetch('engine/'+file); if(!r.ok)throw Error('No se pudo cargar '+file);
     py.FS.writeFile('/app/'+file,await r.text());
   }

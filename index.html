@@ -11,7 +11,13 @@
 <section class="card upload"><span class="step">01 / PREPARAR</span><h2>Su base de trabajo</h2><p>Exporte de Kobo en <b>XLSX</b>, con nombres y valores XML y todas las hojas de certificaciones y ventas.</p>
 <label class="file-zone" for="archivo"><span aria-hidden="true">↥</span><strong>Seleccionar Excel de Kobo</strong><small id="filename">Un archivo .xlsx · hasta 20 MB</small></label><input type="file" id="archivo" accept=".xlsx" class="file-input">
 <label for="diseno">Diseño de la muestra</label><select id="diseno"><option value="NO_DEFINIDO">Pendiente / conveniencia: descriptivos</option><option value="aleatorio_simple_independiente">Aleatorio simple, hogares independientes</option><option value="censo">Censo: descriptivos</option><option value="complejo">Estratos, conglomerados o ponderación</option></select>
-<p class="hint">Active las pruebas e intervalos solo si el diseño corresponde. El piloto siempre se analiza de forma descriptiva.</p>
+<details class="hint"><summary>¿Qué opción debo elegir?</summary>
+<ul>
+<li><b>Pendiente o conveniencia.</b> Si aún no se confirmó el muestreo o se encuestó a quienes estaban disponibles. Muestra descriptivos.</li>
+<li><b>Aleatorio simple.</b> Si se sortearon hogares independientes desde un padrón, con igual probabilidad de selección. Habilita pruebas e intervalos cuando hay datos suficientes.</li>
+<li><b>Censo.</b> Si se cubrió a todos los hogares elegibles del universo definido. Muestra descriptivos de ese universo.</li>
+<li><b>Diseño complejo.</b> Si el sorteo fue por estratos o grupos, o el análisis requiere ponderaciones. Esta versión muestra descriptivos sin ponderar.</li>
+</ul><p>El piloto siempre se analiza de forma descriptiva.</p></details>
 <button id="analizar" class="primary" disabled>Analizar mi base <span>→</span></button>
 <div class="or">o comience con un ejemplo</div><button id="demo" class="secondary">Probar con 120 hogares ficticios</button>
 <p class="period">Periodo común<br><b>1 nov. 2025 — 31 oct. 2026</b></p></section>
@@ -22,8 +28,14 @@
 <div id="empty" class="empty card"><div class="abstract" aria-hidden="true"><i></i><i></i><i></i></div><span class="step">02 / EXPLORAR</span><h2>Las preguntas del estudio,<br>en un solo lugar.</h2><div class="study"><span>01</span><div><h3>Bienestar socioeconómico</h3><p>Compare hogares sin certificación y con certificación estable. Examine aportes, diferencias y su incertidumbre.</p><small>TESIS DOCTORAL · PETER</small></div></div><div class="study"><span>02</span><div><h3>Sostenibilidad del sistema</h3><p>Relativización conjunta de indicadores económicos, ecológicos y sociales, con la misma referencia para todas las fincas.</p><small>TESIS DE PREGRADO</small></div></div><div class="empty-footer">Primero cargue una base o explore la demostración ficticia.</div></div>
 <div id="output" hidden><div class="result-heading"><div><span class="step">02 / EXPLORAR</span><h2>Lectura de la base</h2></div><button id="reset" class="text-button">Limpiar sesión</button></div><div id="badge" class="badge"></div><div id="metrics" class="metrics"></div>
 <nav class="tabs" aria-label="Vistas de resultados"><button class="active" data-view="doctoral">Doctorado</button><button data-view="pregrado">Pregrado</button><button data-view="calidad">Calidad y método</button></nav>
-<div id="panel"></div><div class="download-bar"><div><strong>Lleve los resultados a su tesis</strong><p>Informes, tablas CSV y registro reproducible de la ejecución.</p></div><button id="download" class="primary">Descargar resultados ZIP ↓</button></div></div>
+<section id="redaccion" class="panel-card" hidden>
+<h3 id="redaccion-titulo">Documentos de la tesis</h3>
+<p>Borradores editables en Markdown (.md), generados con los resultados de esta ejecución.</p>
+<button id="metodologia" class="secondary">Descargar metodología con bibliografía</button>
+<button id="resultados-discusion" class="secondary">Descargar resultados y discusión</button>
+</section>
+<div id="panel"></div><div class="download-bar"><div><strong>Resultados de ambas tesis</strong><p>Informes, tablas CSV, borradores y registro de la ejecución.</p></div><button id="download" class="primary">Descargar resultados ZIP ↓</button></div></div>
 </section></div>
 <section class="method-strip"><div><span>UNIDAD DE ANÁLISIS</span><b>Un hogar productor</b></div><div><span>COMPARACIÓN PRINCIPAL</span><b>C1 estable frente a C0 sin certificar</b></div><div><span>SOSTENIBILIDAD</span><b>Tres dimensiones · igual ponderación</b></div></section>
-</main><footer><span>CacaoFV <small>v0.1 · Aplicación de investigación</small></span><a href="docs/GUIA.md" target="_blank" rel="noopener">Guía y límites del análisis ↗</a><a href="https://github.com/CarlosSalasMacias/CacaoFV" target="_blank" rel="noopener">Código y metodología ↗</a></footer>
+</main><footer><span>CacaoFV <small>v0.2 · Aplicación de investigación</small></span><a href="docs/GUIA.md" target="_blank" rel="noopener">Guía y límites del análisis ↗</a><a href="https://github.com/CarlosSalasMacias/CacaoFV" target="_blank" rel="noopener">Código y metodología ↗</a></footer>
 <script src="app.js" defer></script></body></html>

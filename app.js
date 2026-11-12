@@ -8,6 +8,10 @@ function tabla(rows,cols){if(!rows?.length)return '<p class="table-empty">Sin re
 function seccion(t,sub,rows,cols){return '<section class="panel-card"><h3>'+t+'</h3><p>'+sub+'</p>'+tabla(rows,cols)+'</section>';}
 function render(){
   if(!result)return;
+  $('redaccion').hidden=!result.documentos?.[view];
+  if(view==='doctoral'||view==='pregrado'){
+    $('redaccion-titulo').textContent=view==='doctoral'?'Documentos del doctorado':'Documentos del pregrado';
+  }
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
   if(view==='doctoral')$('panel').innerHTML=seccion('Aporte económico de los sistemas','Diferencia C1 − C0. El BF es el resultado primario, en USD/hogar/año. Los indicadores secundarios incluyen ajuste de Holm.',result.economicos,[['variable','Indicador'],['n_C0','n C0'],['n_C1','n C1'],['media_C0','Media C0'],['media_C1','Media C1'],['diferencia_C1_C0','Diferencia'],['ic95_inf','IC95% inf.'],['ic95_sup','IC95% sup.'],['p','p'],['p_holm','p Holm'],['unidad','Unidad'],['estado','Estado']])+seccion('Bienestar social y gestión','Pruebas categóricas u ordinales, según el indicador. Revise denominadores y faltantes en el informe descargable.',result.sociales,[['variable','Variable'],['n_C0','n C0'],['n_C1','n C1'],['prueba','Prueba'],['p','p'],['p_holm','p Holm'],['diferencia_pp','Diferencia pp'],['theta_C1_C0','Probabilidad de superioridad']])+seccion('Asociación ajustada · errores HC3','Ajuste por superficie actual y miembros del hogar. No identifica un efecto causal de la certificación.',result.modelo,[['termino','Término'],['coeficiente','Coeficiente'],['error_HC3','Error HC3'],['ic95_inf','IC95% inf.'],['ic95_sup','IC95% sup.'],['p','p']])+seccion('Viabilidad del modelo','Los umbrales operativos no garantizan potencia estadística.',result.modelo_info,[['n','n'],['estado','Estado'],['nota','Observación']]);
   if(view==='pregrado')$('panel').innerHTML=seccion('Tres dimensiones de sostenibilidad','Valores relativos entre 0 y 1; cada dimensión aporta un tercio del índice global. La certificación no otorga puntos.',result.sostenibilidad,[['grupo','Grupo'],['indice','Dimensión / índice'],['n','n válido'],['no_calculable','No calculable'],['media','Media'],['mediana','Mediana'],['de','Desv. estándar']])+seccion('Referencia común de relativización','Mínimos y máximos de todos los hogares elegibles del archivo. No compare archivos distintos sin conservar la misma referencia.',result.relativizacion,[['indicador','Indicador'],['dimension','Dimensión'],['direccion','Dirección'],['minimo','Mínimo'],['maximo','Máximo'],['n_valido','n válido'],['activo','Activo'],['motivo','Observación']])+'<div class="callout">NS y NR cuentan como faltantes. Solo un NA estructural reduce el número de indicadores aplicables. Una dimensión requiere al menos 80% de cobertura; la social exige además cuatro indicadores válidos.</div>';
@@ -31,7 +35,27 @@ function start(buffer,name,demo){
 }
 $('archivo').onchange=()=>{clearResult();$('status').hidden=true;selected=$('archivo').files[0];if(selected&&(!selected.name.toLowerCase().endsWith('.xlsx')||selected.size>20*1024*1024)){status('Seleccione un archivo .xlsx de hasta 20 MB.',true);selected=null;}$('filename').textContent=selected?.name||'Un archivo .xlsx · hasta 20 MB';controls();};
 $('analizar').onclick=async()=>{if(selected)start(await selected.arrayBuffer(),selected.name,false);};
+$('diseno').onchange=()=>{
+  if(result?.etapa==='CAMPO'&&selected){
+    clearResult();
+    status('Vuelva a analizar la base para aplicar el diseño seleccionado.');
+  }
+};
 $('demo').onclick=async()=>{try{busy=true;controls();const r=await fetch('demo/base_ficticia.json');if(!r.ok)throw Error();start(await r.arrayBuffer(),'base_ficticia.json',true);}catch{busy=false;controls();status('No se pudo cargar la demostración. Revise su conexión.',true);}};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render();});
-$('download').onclick=()=>{const url=URL.createObjectURL(new Blob([zip],{type:'application/zip'}));const a=document.createElement('a');a.href=url;a.download='CacaoFV_'+result.etapa+'_resultados.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+function descargar(contenido, tipo, nombre){
+  const url=URL.createObjectURL(new Blob([contenido],{type:tipo}));
+  const enlace=document.createElement('a');
+  enlace.href=url;
+  enlace.download=nombre;
+  enlace.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function descargarBorrador(apartado){
+  const borrador=result?.documentos?.[view]?.[apartado];
+  if(borrador)descargar(borrador,'text/markdown;charset=utf-8',`CacaoFV_${result.etapa}_${view}_${apartado}.md`);
+}
+$('metodologia').onclick=()=>descargarBorrador('metodologia');
+$('resultados-discusion').onclick=()=>descargarBorrador('resultados_discusion');
+$('download').onclick=()=>descargar(zip,'application/zip',`CacaoFV_${result.etapa}_resultados.zip`);
 $('reset').onclick=()=>{worker?.terminate();worker=null;selected=null;$('archivo').value='';$('filename').textContent='Un archivo .xlsx · hasta 20 MB';clearResult();$('status').hidden=true;controls();};

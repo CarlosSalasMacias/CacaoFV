@@ -64,6 +64,14 @@ class Motor(unittest.TestCase):
         self.assertEqual((bf['n_C0'],bf['n_C1']),(39,71));self.assertAlmostEqual(bf['diferencia_C1_C0'],1702.884112,places=5)
         with zipfile.ZipFile(io.BytesIO(z)) as f:
             self.assertIn('doctoral/reporte.html',f.namelist());self.assertIn('pregrado/indices_hogares.csv',f.namelist())
+            for tesis in ('doctoral','pregrado'):
+                for apartado in ('metodologia','resultados_discusion'):
+                    borrador=r['documentos'][tesis][apartado]
+                    self.assertEqual(f.read(f'{tesis}/{apartado}.md').decode('utf-8'),borrador)
+                    self.assertIn('Simulación con hogares ficticios',borrador)
+            self.assertIn('1702,88 USD/hogar/año',r['documentos']['doctoral']['resultados_discusion'])
+            self.assertIn('115 de los 120 hogares',r['documentos']['pregrado']['resultados_discusion'])
+            self.assertIn('Pachay Delgado, L. E. (2024)',r['documentos']['pregrado']['metodologia'])
             d=pd.read_csv(f.open('doctoral/indicadores_hogares.csv'))
             self.assertTrue((d.bf_usd.dropna()<0).any());self.assertTrue((d.j_fam_8h==0).any())
             self.assertEqual(int(pd.read_csv(f.open('pregrado/indices_hogares.csv')).IS.notna().sum()),115)
@@ -75,5 +83,10 @@ class Motor(unittest.TestCase):
         r=json.loads(r);self.assertEqual(r['etapa'],'PILOTO');self.assertEqual(r['diseno'],'NO_DEFINIDO')
         self.assertTrue(all(x['p']=='' for x in r['economicos']))
         self.assertEqual(r['n_analizados'],120)
+        for tesis,docs in r['documentos'].items():
+            self.assertIn('El piloto se procesó en modalidad descriptiva',docs['metodologia'])
+            self.assertIn('## Referencias',docs['metodologia'])
+            self.assertIn('La comparación de este indicador es descriptiva',docs['resultados_discusion'])
+            self.assertNotIn('valor p de Welch',docs['resultados_discusion'])
 
 if __name__=='__main__': unittest.main()

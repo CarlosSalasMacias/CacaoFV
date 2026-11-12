@@ -1,5 +1,6 @@
 __pycache__/
 tests/_salida/
+tests/_plot_deps/
 node_modules/
 *.xlsx
 *.zip

@@ -2,7 +2,7 @@
 import math
 
 DISEÑOS = {
-    'NO_DEFINIDO': 'Selección por conveniencia o diseño pendiente de confirmar',
+    'NO_DEFINIDO': 'Diseño de muestreo pendiente de documentar',
     'aleatorio_simple_independiente': 'Muestreo aleatorio simple con hogares independientes',
     'censo': 'Censo del universo definido',
     'complejo': 'Diseño con estratos, conglomerados o ponderaciones',
@@ -16,6 +16,7 @@ HOLM = "Holm, S. (1979). A simple sequentially rejective multiple test procedure
 HC3 = "Long, J. S., y Ervin, L. H. (2000). Using heteroscedasticity consistent standard errors in the linear regression model. *The American Statistician, 54*, 217–224. https://doi.org/10.1080/00031305.2000.10474549"
 SARANDON = "Sarandón, S. J., y Flores, C. C. (2009). Evaluación de la sustentabilidad en agroecosistemas: Una propuesta metodológica. *Agroecología, 4*, 19–28. https://revistas.um.es/agroecologia/article/view/117131"
 PACHAY = "Pachay Delgado, L. E. (2024). *Sostenibilidad de territorios rurales cafeteros del cantón Santa Ana Manabí, Ecuador* [Tesis de maestría, Universidad Técnica de Manabí]."
+SEPULVEDA = "Sepúlveda S., S., Chavarría Miranda, H., Rojas, P., y Brenes M., M. C. (2008). Metodología para estimar el nivel de desarrollo sostenible de territorios. En S. Sepúlveda S., *Biograma: metodología para estimar el nivel de desarrollo sostenible de territorios* (cap. II). Instituto Interamericano de Cooperación para la Agricultura. ISBN 978-92-9039-872-1. https://eco.mdp.edu.ar/cendocu/repositorio/00661.pdf"
 SELLARE = "Sellare, J., Meemken, E.-M., Kouamé, C., y Qaim, M. (2020). Do sustainability standards benefit smallholder farmers also when accounting for cooperative effects? Evidence from Côte d’Ivoire. *American Journal of Agricultural Economics, 102*, 681–695. https://doi.org/10.1002/ajae.12015"
 TENNHARDT = "Tennhardt, L. M., Lambin, E. F., Curran, M., y Schader, C. (2023). Implementation of sustainable farming practices by cocoa farmers in Ecuador and Uganda: The influence of value chain factors. *Frontiers in Sustainable Food Systems, 7*, 1167683. https://doi.org/10.3389/fsufs.2023.1167683"
 NOMBRES = {
@@ -85,7 +86,7 @@ Se utilizó un cuestionario estructurado en KoboToolbox. El identificador de hog
     if r['etapa'] == 'SIMULACION':
         comun = comun.replace('Se utilizó un cuestionario estructurado en KoboToolbox.', 'La ejecución se realizó con datos simulados para el cuestionario estructurado de KoboToolbox.')
     if r['etapa'] == 'PILOTO':
-        comun += 'El piloto se procesó en modalidad descriptiva, con independencia de la opción seleccionada en la interfaz.\n\n'
+        comun += 'El piloto se procesó en modalidad descriptiva.\n\n'
     if tesis == 'doctoral':
         especifico = """## Variables y análisis doctoral
 
@@ -103,18 +104,18 @@ La comparación se planteó a nivel de hogar. La afiliación organizativa y la c
         agua = 'Se incluyó el indicador de prácticas aplicables de agua.' if pc['incluir_agua'] else 'El indicador opcional de prácticas de agua quedó fuera del índice.'
         especifico = f"""## Indicadores y cálculo del índice
 
-La evaluación mediante indicadores siguió el enfoque multidimensional de Sarandón y Flores (2009). Se adaptó a los SAF con cacao el procedimiento de relativización usado por Pachay Delgado (2024) en territorios cafeteros.
+La evaluación mediante indicadores siguió el enfoque multidimensional de Sarandón y Flores (2009). La relativización y la agregación por dimensiones se basaron en el Biograma de Sepúlveda et al. (2008, cap. II, §§ 3.5–3.6), que Pachay Delgado (2024) aplicó a territorios cafeteros. Para esta adaptación, la unidad de análisis fue el hogar con SAF de cacao, con indicadores seleccionados para las dimensiones económica, ecológica y social.
 
 La dimensión económica reunió la proporción de flujo de caja respecto del ingreso bruto con prima adicional, el beneficio por persona, el número de fuentes económicas positivas, el registro económico y la aplicación de apoyo técnico. La dimensión ecológica reunió el número de prácticas de manejo, la frecuencia de aplicaciones de plaguicidas, la conversión de bosque y la categoría de riqueza de especies arbóreas declarada. La dimensión social reunió continuidad alimentaria, acceso a salud, asistencia escolar, transporte, participación en decisiones y satisfacción con el aporte del SAF. {agua}
 
-Cada indicador se llevó a una escala de 0 a 1 con el mínimo (m) y máximo (M) observados entre los hogares elegibles de todos los grupos. Para indicadores de sentido favorable creciente se usó (x − m)/(M − m). Para los de sentido decreciente se usó (M − x)/(M − m). Se excluyeron del promedio los indicadores constantes o sin valores válidos. Las puntuaciones representan la posición relativa en la muestra de referencia.
+Cada indicador se llevó a una escala de 0 a 1 con el mínimo (m) y máximo (M) observados entre los hogares elegibles de todos los grupos. Para indicadores de sentido favorable creciente se usó (x − m)/(M − m). Para los de sentido decreciente se usó (M − x)/(M − m) (Sepúlveda et al., 2008, pp. 33–34). Se excluyeron del promedio los indicadores constantes o sin valores válidos. Las puntuaciones representan la posición relativa en la muestra de referencia.
 
 Cada dimensión se calculó como el promedio de sus indicadores normalizados válidos, con una cobertura mínima del {numero(pc['min_cobertura'] * 100, 0)} % de los indicadores activos aplicables. La dimensión social requirió además al menos {pc['social_min_validos']} indicadores válidos. La inaplicabilidad estructural redujo el denominador en salud, escolaridad y participación en decisiones. Las respuestas desconocidas o ausentes mantuvieron el indicador en el denominador cuando era aplicable.
 
 El índice global requirió las tres dimensiones y usó estas ponderaciones ({pesos}). Se examinó una variante de sensibilidad que restringe la dimensión social a los indicadores activos de continuidad alimentaria, transporte y satisfacción, con datos completos para ese conjunto. La condición de certificación se utilizó como variable de agrupación. Se resumieron las dimensiones y el índice por grupo y se calculó la diferencia de medias C1 menos C0.
 
 """
-        fuentes = (SARANDON, PACHAY, WELCH, HOLM)
+        fuentes = (SARANDON, SEPULVEDA, PACHAY, WELCH, HOLM)
     if r['diseno'] == 'aleatorio_simple_independiente':
         especifico += 'La comparación de medias se realizó con la prueba bilateral de Welch e intervalos de confianza del 95 % (Welch, 1947). Se aplicó el ajuste de Holm a las familias de contrastes (Holm, 1979).\n\n'
         if tesis == 'doctoral':
@@ -125,7 +126,7 @@ Se especificó una regresión lineal del beneficio familiar sobre certificación
 """
     else:
         especifico += 'Esta ejecución se limitó a descripciones por grupo y diferencias observadas entre medias.\n\n'
-        fuentes = (SELLARE,) if tesis == 'doctoral' else (SARANDON, PACHAY)
+        fuentes = (SELLARE,) if tesis == 'doctoral' else (SARANDON, SEPULVEDA, PACHAY)
     software = ', '.join(f'{k} {v}' for k, v in versiones.items())
     pendientes = """## Aspectos por completar antes de incorporar a la tesis
 

@@ -1,4 +1,4 @@
-# Guía de uso y alcance · v0.1
+# Guía de uso y alcance · v0.3
 
 ## Exportar desde Kobo
 
@@ -18,9 +18,9 @@ BF = ventas cacao + otras ventas SAF + pago adicional no incluido en ventas − 
 
 No se resta el trabajo familiar al BF. El indicador NI* sí incorpora su valoración. Las inversiones extraordinarias se mantienen separadas. No es una contabilidad completa de utilidad económica.
 
-El análisis inferencial se habilita únicamente al seleccionar **aleatorio simple, hogares independientes**. Si no corresponde, se entregan descripciones y diferencias observadas. Censo, conveniencia y diseños complejos no se fuerzan a un análisis inferencial simple. El piloto permanece descriptivo, cualquiera sea la selección.
+El análisis se inicia al seleccionar el Excel. La interfaz entrega descripciones y diferencias observadas para todas las bases de Kobo, incluido el piloto. Las respuestas de Kobo no documentan por sí solas el procedimiento de muestreo. La demostración ficticia permite comprobar las salidas inferenciales. El motor conserva la opción de analizar por separado una base con diseño aleatorio simple e independencia documentados.
 
-Cuando corresponde: Welch bilateral e IC95% para diferencias de medias; Holm para familias de resultados secundarios; Fisher o Pearson para categorías, con Monte Carlo condicional de 19.999 réplicas en tablas RxC dispersas; Mann–Whitney para ordinales; regresión lineal con errores HC3 ajustando por logaritmo de superficie actual y miembros del hogar, sujeta a tamaño y rango suficientes. El ZIP incluye bootstrap complementario, diagnósticos y comparaciones exploratorias entre combinaciones de certificaciones.
+El protocolo inferencial, cuando el diseño lo permite, contempla Welch bilateral e IC95% para diferencias de medias, ajuste de Holm para resultados secundarios, pruebas categóricas u ordinales y regresión con errores HC3 sujeta a los criterios del protocolo. Las salidas inferenciales de la demostración son ficticias.
 
 Los nombres de esquemas se mantienen tal como fueron registrados; homogeneice variantes ortográficas en el origen antes de estudiar combinaciones. No trate distintos mercados de una misma norma como sellos independientes. Los resultados son asociaciones, sin identificación causal. Una p ≥ 0,05 no prueba equivalencia. Los umbrales del modelo no garantizan potencia.
 
@@ -28,9 +28,13 @@ Los nombres de esquemas se mantienen tal como fueron registrados; homogeneice va
 
 Se usan cinco indicadores económicos, cuatro ecológicos y seis sociales, definidos en el motor. El indicador opcional de agua está desactivado hasta validar su aplicabilidad.
 
-Se relativiza con mínimos y máximos comunes a todos los hogares elegibles del archivo, incluidos C2/C3/CU, en el sentido favorable del indicador. Los indicadores constantes o sin datos se excluyen globalmente. Cada dimensión exige 80% de cobertura de indicadores aplicables; la social exige además cuatro válidos. Solo NA estructural en salud, escuela y decisiones reduce el denominador; NS/NR nunca lo hacen.
+Se aplica la relativización del Biograma de Sepúlveda et al. (2008), adaptada por Pachay Delgado (2024) a territorios cafeteros y ajustada aquí a los SAF con cacao. Los mínimos y máximos son comunes a todos los hogares elegibles, incluidos C2/C3/CU. Los indicadores constantes o sin datos se excluyen globalmente. Cada dimensión exige 80 % de cobertura de indicadores aplicables y la social exige además cuatro válidos. Solo la inaplicabilidad estructural en salud, escuela y decisiones reduce el denominador. [Biograma, capítulo II](https://eco.mdp.edu.ar/cendocu/repositorio/00661.pdf)
 
 El índice global promedia las tres dimensiones con igual ponderación y requiere las tres calculables. La certificación no otorga puntos. Un valor de 1 significa posición relativa en esta muestra, no sostenibilidad absoluta. Cambiar los hogares importados puede cambiar mínimos, máximos e índices. Conserve la referencia de normalización para comparaciones posteriores.
+
+## Gráficas
+
+La pestaña Doctorado muestra la mediana y los percentiles 25 y 75 del beneficio familiar en C0 y C1. La pestaña Pregrado muestra las medias por grupo de las tres dimensiones y del índice global. Cada gráfica indica los hogares con datos válidos y puede descargarse como PNG a 300 dpi o SVG editable. Ambos formatos también se incluyen en el ZIP.
 
 ## Resultados y privacidad
 

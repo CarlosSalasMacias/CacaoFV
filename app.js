@@ -1,5 +1,5 @@
 const $=id=>document.getElementById(id);
-let worker, selected, result, zip, view='doctoral', busy=false;
+let worker, result, zip, view='doctoral', busy=false;
 const nombres={bf_usd:'Beneficio familiar SAF (BF)',cfp_usd:'Flujo de caja SAF + pago adicional',ac_usd:'Autoconsumo valorado',nip_usd:'Ingreso con trabajo familiar valorado',bf_persona_usd:'BF por persona',bf_ha_usd:'BF por hectárea SAF',bf_jornal_usd:'BF por jornada familiar',pm_pct:'Participación monetaria SAF',cc_usd:'Gastos operativos',economica:'Económica',ecologica:'Ecológica',social:'Social',IS:'Índice de sostenibilidad',social_comun:'Social común (sensibilidad)',IS_comun:'IS común (sensibilidad)',cert_estable:'Certificación estable C1',const:'Constante',ln_area:'Logaritmo de área SAF',n_hogar:'Miembros del hogar'};
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 Object.assign(nombres,{alim_reduc_si:'Reducción de alimentación',salud_acceso:'Acceso a salud',escuela_asist:'Asistencia escolar',transp_dific:'Dificultad de transporte',decision_part:'Participación en decisiones',satisf_saf:'Satisfacción con el SAF',registro_econ:'Registro económico',apoyo_aplicado:'Apoyo técnico aplicado'});
@@ -8,6 +8,7 @@ function tabla(rows,cols){if(!rows?.length)return '<p class="table-empty">Sin re
 function seccion(t,sub,rows,cols){return '<section class="panel-card"><h3>'+t+'</h3><p>'+sub+'</p>'+tabla(rows,cols)+'</section>';}
 function render(){
   if(!result)return;
+  renderGrafica();
   $('redaccion').hidden=!result.documentos?.[view];
   if(view==='doctoral'||view==='pregrado'){
     $('redaccion-titulo').textContent=view==='doctoral'?'Documentos del doctorado':'Documentos del pregrado';
@@ -15,14 +16,34 @@ function render(){
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
   if(view==='doctoral')$('panel').innerHTML=seccion('Aporte económico de los sistemas','Diferencia C1 − C0. El BF es el resultado primario, en USD/hogar/año. Los indicadores secundarios incluyen ajuste de Holm.',result.economicos,[['variable','Indicador'],['n_C0','n C0'],['n_C1','n C1'],['media_C0','Media C0'],['media_C1','Media C1'],['diferencia_C1_C0','Diferencia'],['ic95_inf','IC95% inf.'],['ic95_sup','IC95% sup.'],['p','p'],['p_holm','p Holm'],['unidad','Unidad'],['estado','Estado']])+seccion('Bienestar social y gestión','Pruebas categóricas u ordinales, según el indicador. Revise denominadores y faltantes en el informe descargable.',result.sociales,[['variable','Variable'],['n_C0','n C0'],['n_C1','n C1'],['prueba','Prueba'],['p','p'],['p_holm','p Holm'],['diferencia_pp','Diferencia pp'],['theta_C1_C0','Probabilidad de superioridad']])+seccion('Asociación ajustada · errores HC3','Ajuste por superficie actual y miembros del hogar. No identifica un efecto causal de la certificación.',result.modelo,[['termino','Término'],['coeficiente','Coeficiente'],['error_HC3','Error HC3'],['ic95_inf','IC95% inf.'],['ic95_sup','IC95% sup.'],['p','p']])+seccion('Viabilidad del modelo','Los umbrales operativos no garantizan potencia estadística.',result.modelo_info,[['n','n'],['estado','Estado'],['nota','Observación']]);
   if(view==='pregrado')$('panel').innerHTML=seccion('Tres dimensiones de sostenibilidad','Valores relativos entre 0 y 1; cada dimensión aporta un tercio del índice global. La certificación no otorga puntos.',result.sostenibilidad,[['grupo','Grupo'],['indice','Dimensión / índice'],['n','n válido'],['no_calculable','No calculable'],['media','Media'],['mediana','Mediana'],['de','Desv. estándar']])+seccion('Referencia común de relativización','Mínimos y máximos de todos los hogares elegibles del archivo. No compare archivos distintos sin conservar la misma referencia.',result.relativizacion,[['indicador','Indicador'],['dimension','Dimensión'],['direccion','Dirección'],['minimo','Mínimo'],['maximo','Máximo'],['n_valido','n válido'],['activo','Activo'],['motivo','Observación']])+'<div class="callout">NS y NR cuentan como faltantes. Solo un NA estructural reduce el número de indicadores aplicables. Una dimensión requiere al menos 80% de cobertura; la social exige además cuatro indicadores válidos.</div>';
-  if(view==='calidad')$('panel').innerHTML=seccion('Composición de la base','C0: sin certificación anual; C1: estable y total; C2: cobertura parcial; C3: transición; CU: información insuficiente. C2, C3 y CU se describen por separado.',Object.entries(result.grupos).map(([grupo,n])=>({grupo,n})),[['grupo','Grupo'],['n','Hogares']])+seccion('Avisos para revisar','Los errores que impiden el análisis detienen la carga. Estos avisos conservan la incertidumbre, sin corregir respuestas automáticamente.',result.avisos,[['id_hogar','Hogar'],['campo','Campo'],['mensaje','Aviso']])+seccion('Cobertura de indicadores','Revise dónde se pierden observaciones antes de interpretar diferencias.',result.cobertura,[['grupo','Grupo'],['indicador','Indicador'],['n_total','Total'],['n_valido','Válidos'],['n_NA','No aplica'],['n_otros_faltantes','Otros faltantes']])+'<div class="callout">Diseño: '+escape(result.diseno)+'. Los resultados describen asociaciones. El muestreo, la calidad de las respuestas y el tamaño de cada grupo determinan su alcance. Una p mayor que 0,05 no demuestra equivalencia.</div>';
+  if(view==='calidad')$('panel').innerHTML=seccion('Composición de la base','C0: sin certificación anual; C1: estable y total; C2: cobertura parcial; C3: transición; CU: información insuficiente. C2, C3 y CU se describen por separado.',Object.entries(result.grupos).map(([grupo,n])=>({grupo,n})),[['grupo','Grupo'],['n','Hogares']])+seccion('Avisos para revisar','Los errores que impiden el análisis detienen la carga. Estos avisos conservan la incertidumbre, sin corregir respuestas automáticamente.',result.avisos,[['id_hogar','Hogar'],['campo','Campo'],['mensaje','Aviso']])+seccion('Cobertura de indicadores','Revise dónde se pierden observaciones antes de interpretar diferencias.',result.cobertura,[['grupo','Grupo'],['indicador','Indicador'],['n_total','Total'],['n_valido','Válidos'],['n_NA','No aplica'],['n_otros_faltantes','Otros faltantes']])+'<div class="callout">'+(result.etapa==='SIMULACION'?'La base ficticia permite probar el cálculo de pruebas e intervalos.':'Esta ejecución resume los hogares de la base. El Excel de Kobo registra respuestas, mientras que el procedimiento de selección debe documentarse en la tesis.')+'</div>';
+}
+function renderGrafica(){
+  const grafica=result.graficas?.[view];
+  $('graficas').hidden=view==='calidad';
+  $('grafica-contenido').hidden=!grafica;
+  $('grafica-vacia').hidden=Boolean(grafica);
+  const imagen=$('grafica-imagen');
+  if(grafica){
+    imagen.alt=grafica.alt;
+    imagen.src='data:image/png;base64,'+grafica.png;
+  }else{
+    imagen.removeAttribute('src');
+    imagen.alt='';
+  }
 }
 function status(message,error=false){$('status').hidden=false;$('status').classList.toggle('error',error);$('status').textContent=message;}
-function controls(){ $('demo').disabled=busy;$('analizar').disabled=busy||!selected;$('archivo').disabled=busy;$('diseno').disabled=busy; }
-function clearResult(){result=null;zip=null;$('output').hidden=true;$('empty').hidden=false;}
+function controls(){ $('demo').disabled=busy;$('archivo').disabled=busy; }
+function clearResult(){
+  result=null;
+  zip=null;
+  $('grafica-imagen').removeAttribute('src');
+  $('output').hidden=true;
+  $('empty').hidden=false;
+}
 function start(buffer,name,demo){
   clearResult();busy=true;controls();
-  if(!worker){worker=new Worker('worker.js');worker.onmessage=({data})=>{
+  if(!worker){worker=new Worker('worker.js?v=0.3.0');worker.onmessage=({data})=>{
     if(data.type==='progress')status(data.message);
     if(data.type==='error'){busy=false;controls();const lines=data.message.split('\n').filter(Boolean);status('No se pudo analizar. '+(lines.findLast(s=>s.includes('ErrorDatos:'))||lines.at(-1)||data.message),true);}
     if(data.type==='result'){busy=false;controls();result=data.result;zip=data.zip;$('status').hidden=true;$('empty').hidden=true;$('output').hidden=false;
@@ -31,14 +52,28 @@ function start(buffer,name,demo){
       $('metrics').innerHTML=[['HOGARES ANALIZADOS',result.n_analizados,'Elegibles con consentimiento'],['BF CON DATOS',Number(b?.n_C0||0)+Number(b?.n_C1||0),'Comparación principal C0 + C1'],['GRUPOS C0 / C1',(result.grupos.C0||0)+' / '+(result.grupos.C1||0),'Otros grupos se describen aparte']].map(([l,v,s])=>'<div class="metric"><span>'+l+'</span><strong>'+escape(v)+'</strong><small>'+s+'</small></div>').join('');render();
     }
   };worker.onerror=()=>{busy=false;controls();status('El motor no pudo iniciarse. Revise la conexión y vuelva a intentarlo.',true);worker.terminate();worker=null;};}
-  status('Preparando el análisis…');worker.postMessage({buffer,name,demo,design:$('diseno').value},[buffer]);
+  status('Preparando el análisis…');worker.postMessage({buffer,name,demo},[buffer]);
 }
-$('archivo').onchange=()=>{clearResult();$('status').hidden=true;selected=$('archivo').files[0];if(selected&&(!selected.name.toLowerCase().endsWith('.xlsx')||selected.size>20*1024*1024)){status('Seleccione un archivo .xlsx de hasta 20 MB.',true);selected=null;}$('filename').textContent=selected?.name||'Un archivo .xlsx · hasta 20 MB';controls();};
-$('analizar').onclick=async()=>{if(selected)start(await selected.arrayBuffer(),selected.name,false);};
-$('diseno').onchange=()=>{
-  if(result?.etapa==='CAMPO'&&selected){
-    clearResult();
-    status('Vuelva a analizar la base para aplicar el diseño seleccionado.');
+$('archivo').onchange=async()=>{
+  const archivo=$('archivo').files[0];
+  if(!archivo||busy)return;
+  // Permite volver a seleccionar el mismo archivo si la lectura falla.
+  $('archivo').value='';
+  if(!archivo.name.toLowerCase().endsWith('.xlsx')||archivo.size>20*1024*1024){
+    status('Seleccione un archivo .xlsx de hasta 20 MB.',true);
+    return;
+  }
+  clearResult();
+  $('filename').textContent=archivo.name;
+  busy=true;
+  controls();
+  status('Leyendo el Excel de Kobo…');
+  try{
+    start(await archivo.arrayBuffer(),archivo.name,false);
+  }catch{
+    busy=false;
+    controls();
+    status('No se pudo leer el archivo. Vuelva a seleccionarlo.',true);
   }
 };
 $('demo').onclick=async()=>{try{busy=true;controls();const r=await fetch('demo/base_ficticia.json');if(!r.ok)throw Error();start(await r.arrayBuffer(),'base_ficticia.json',true);}catch{busy=false;controls();status('No se pudo cargar la demostración. Revise su conexión.',true);}};
@@ -57,5 +92,16 @@ function descargarBorrador(apartado){
 }
 $('metodologia').onclick=()=>descargarBorrador('metodologia');
 $('resultados-discusion').onclick=()=>descargarBorrador('resultados_discusion');
+function descargarGrafica(formato){
+  const grafica=result?.graficas?.[view];
+  if(!grafica)return;
+  const contenido=formato==='png'
+    ? Uint8Array.from(atob(grafica.png),c=>c.charCodeAt(0))
+    : grafica.svg;
+  const tipo=formato==='png'?'image/png':'image/svg+xml';
+  descargar(contenido,tipo,`CacaoFV_${result.etapa}_${grafica.nombre}.${formato}`);
+}
+$('grafica-png').onclick=()=>descargarGrafica('png');
+$('grafica-svg').onclick=()=>descargarGrafica('svg');
 $('download').onclick=()=>descargar(zip,'application/zip',`CacaoFV_${result.etapa}_resultados.zip`);
-$('reset').onclick=()=>{worker?.terminate();worker=null;selected=null;$('archivo').value='';$('filename').textContent='Un archivo .xlsx · hasta 20 MB';clearResult();$('status').hidden=true;controls();};
+$('reset').onclick=()=>{worker?.terminate();worker=null;$('archivo').value='';$('filename').textContent='Un archivo .xlsx · hasta 20 MB';clearResult();$('status').hidden=true;controls();};

@@ -64,6 +64,10 @@ class Motor(unittest.TestCase):
         self.assertEqual((bf['n_C0'],bf['n_C1']),(39,71));self.assertAlmostEqual(bf['diferencia_C1_C0'],1702.884112,places=5)
         with zipfile.ZipFile(io.BytesIO(z)) as f:
             self.assertIn('doctoral/reporte.html',f.namelist());self.assertIn('pregrado/indices_hogares.csv',f.namelist())
+            for tesis, nombre in [('doctoral','beneficio_familiar'),('pregrado','sostenibilidad')]:
+                self.assertEqual(r['graficas'][tesis]['nombre'],nombre)
+                self.assertIn('Simulación ficticia',f.read(f'{tesis}/graficas/{nombre}.svg').decode('utf-8'))
+                self.assertTrue(f.read(f'{tesis}/graficas/{nombre}.png').startswith(b'\x89PNG'))
             for tesis in ('doctoral','pregrado'):
                 for apartado in ('metodologia','resultados_discusion'):
                     borrador=r['documentos'][tesis][apartado]
@@ -72,6 +76,7 @@ class Motor(unittest.TestCase):
             self.assertIn('1702,88 USD/hogar/año',r['documentos']['doctoral']['resultados_discusion'])
             self.assertIn('115 de los 120 hogares',r['documentos']['pregrado']['resultados_discusion'])
             self.assertIn('Pachay Delgado, L. E. (2024)',r['documentos']['pregrado']['metodologia'])
+            self.assertIn('978-92-9039-872-1',r['documentos']['pregrado']['metodologia'])
             d=pd.read_csv(f.open('doctoral/indicadores_hogares.csv'))
             self.assertTrue((d.bf_usd.dropna()<0).any());self.assertTrue((d.j_fam_8h==0).any())
             self.assertEqual(int(pd.read_csv(f.open('pregrado/indices_hogares.csv')).IS.notna().sum()),115)
@@ -88,5 +93,17 @@ class Motor(unittest.TestCase):
             self.assertIn('## Referencias',docs['metodologia'])
             self.assertIn('La comparación de este indicador es descriptiva',docs['resultados_discusion'])
             self.assertNotIn('valor p de Welch',docs['resultados_discusion'])
+
+    def test_campo_automatico_es_descriptivo(self):
+        t=fixture();t['encuesta']['tipo_levantamiento']='CAMPO'
+        t['encuesta']['id_hogar']=['FV-'+str(i+1).zfill(3) for i in range(120)]
+        with patch('aplicacion.pd.read_excel',return_value=t):
+            r,_=ejecutar_archivo(b'fixture de campo','prueba.xlsx')
+        r=json.loads(r)
+        self.assertEqual(r['etapa'],'CAMPO')
+        self.assertEqual(r['diseno'],'NO_DEFINIDO')
+        self.assertTrue(all(x['p']=='' for x in r['economicos']))
+        self.assertIn('Datos de campo',r['graficas']['doctoral']['svg'])
+        self.assertIn('Esta ejecución se limitó a descripciones',r['documentos']['doctoral']['metodologia'])
 
 if __name__=='__main__': unittest.main()

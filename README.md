@@ -6,8 +6,8 @@ Aplicación estática para analizar la encuesta compartida de los sistemas agrof
 
 1. Abra la aplicación en GitHub Pages.
 2. Pulse **Probar con 120 hogares ficticios**, o cargue un Excel de Kobo con nombres y valores XML y todas las hojas repetidas.
-3. Indique el diseño de la muestra. Por defecto se entregan descripciones; el piloto siempre es descriptivo.
-4. Examine las vistas Doctorado, Pregrado y Calidad y método. En cada tesis puede descargar la metodología con bibliografía y un borrador de resultados y discusión en Markdown. El ZIP incluye los cuatro borradores, informes, tablas, datos normalizados, avisos y versiones.
+3. Al elegir el Excel se inicia el análisis. La aplicación genera comparaciones descriptivas para las bases de Kobo. La demostración ficticia permite probar las salidas inferenciales.
+4. Examine las vistas Doctorado, Pregrado y Calidad y método. En cada tesis puede descargar la gráfica en PNG (300 dpi) o SVG, la metodología con bibliografía y un borrador de resultados y discusión en Markdown. El ZIP incluye las gráficas disponibles, los cuatro borradores, informes, tablas, datos normalizados, avisos y versiones.
 
 Los datos del archivo se procesan en el navegador, mediante Python/WebAssembly en un worker. No se transmiten a un servidor de análisis ni se guardan en el repositorio. La aplicación descarga bibliotecas públicas desde jsDelivr/PyPI al iniciar: requiere internet y puede tardar unos minutos la primera vez. No almacena datos entre sesiones. Los ZIP descargados sí contienen datos y deben custodiarse localmente.
 

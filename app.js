@@ -53,7 +53,7 @@ function clearResult(){
 }
 function start(buffer,name,demo){
   clearResult();busy=true;controls();
-  if(!worker){worker=new Worker('worker.js?v=0.4.0');worker.onmessage=({data})=>{
+  if(!worker){worker=new Worker('worker.js?v=0.5.0');worker.onmessage=({data})=>{
     if(data.type==='progress')status(data.message);
     if(data.type==='error'){busy=false;controls();const lines=data.message.split('\n').filter(Boolean);status('No se pudo analizar. '+(lines.findLast(s=>s.includes('ErrorDatos:'))||lines.at(-1)||data.message),true);}
     if(data.type==='result'){busy=false;controls();result=data.result;zip=data.zip;$('status').hidden=true;$('empty').hidden=true;$('output').hidden=false;

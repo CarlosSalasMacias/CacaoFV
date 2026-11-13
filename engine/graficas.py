@@ -25,13 +25,13 @@ INDICADORES = {
 }
 
 
-def lienzo(titulo, etapa, nota, alto=4.0):
+def lienzo(titulo, etapa, nota, alto=4.0, posicion_nota=.065):
     fig = Figure(figsize=(7.0, alto), facecolor='white')
     FigureCanvasAgg(fig)
     marca = {'SIMULACION': 'Simulación ficticia', 'PILOTO': 'Piloto descriptivo'}.get(etapa, 'Datos de campo')
     fig.text(.04, .93, titulo, fontsize=13, fontweight='bold', color='#19232e')
     fig.text(.04, .865, marca, fontsize=9, color='#515963')
-    fig.text(.04, .065, nota, fontsize=9, color='#515963', linespacing=1.35)
+    fig.text(.04, posicion_nota, nota, fontsize=9, color='#515963', linespacing=1.35)
     return fig
 
 
@@ -98,16 +98,29 @@ def sostenibilidad(resumen, etapa):
     return fig
 
 
-def telarana(resumen, etapa, ejes, titulo):
+def telarana(resumen, etapa, ejes, titulo, *, general=False):
     filas = {(f['grupo'], f['indice']): f for f in resumen
              if f['grupo'] in GRUPOS and f['indice'] in ejes and f['n'] > 0 and valido(f['media'])}
     if len(ejes) < 3 or not filas:
         return None
     fig = lienzo(titulo, etapa,
                  'Cada eje muestra una media relativa de 0 a 1. n = hogares con datos válidos por eje.\n'
-                 'Si falta una media, el grupo se representa con puntos en los ejes disponibles.', alto=5.0)
-    ax = fig.add_axes([.06, .22, .88, .59], aspect='equal')
-    ax.set(xlim=(-1.75, 1.75), ylim=(-1.34, 1.40))
+                 'Si falta una media, el grupo se representa con puntos en los ejes disponibles.',
+                 alto=8.5 if general else 5.0, posicion_nota=.033 if general else .065)
+    if general:
+        ax = fig.add_axes([.07, .385, .86, .46], aspect='equal')
+        ax.set(xlim=(-1.22, 1.22), ylim=(-1.22, 1.22))
+        for i, (dimension, indicadores) in enumerate(INDICADORES.items()):
+            izquierda = .04 + i*.325
+            fig.text(izquierda, .325, DIMENSIONES[dimension], fontsize=9, fontweight='bold')
+            visibles = [clave for clave in indicadores if clave in ejes]
+            for j, clave in enumerate(visibles):
+                y = .30 - j*.039
+                fig.text(izquierda, y, f'{clave} {ejes[clave]}', fontsize=8, color='#19232e')
+                fig.text(izquierda, y-.016, conteos(filas, clave), fontsize=8, color='#515963')
+    else:
+        ax = fig.add_axes([.06, .22, .88, .59], aspect='equal')
+        ax.set(xlim=(-1.75, 1.75), ylim=(-1.34, 1.40))
     ax.set_axis_off()
     angulos = [pi/2 - 2*pi*i/len(ejes) for i in range(len(ejes))]
     radios = [(cos(a), sin(a)) for a in angulos]
@@ -121,8 +134,8 @@ def telarana(resumen, etapa, ejes, titulo):
     for (clave, nombre), (x,y) in zip(ejes.items(), radios):
         ax.plot([0,x], [0,y], color='#c8cfd6', linewidth=.7, zorder=1)
         alineacion = 'left' if x > .2 else 'right' if x < -.2 else 'center'
-        cuentas = ' · '.join(f'{g} n={filas.get((g,clave),{}).get("n",0)}' for g in GRUPOS)
-        ax.text(1.11*x, 1.11*y, f'{nombre}\n{cuentas}', ha=alineacion,
+        etiqueta = clave if general else f'{nombre}\n{conteos(filas, clave)}'
+        ax.text(1.11*x, 1.11*y, etiqueta, ha=alineacion,
                 va='bottom' if y > .85 else 'top' if y < -.85 else 'center', fontsize=8.5, color='#19232e')
     for grupo, (nombre, color, marcador) in GRUPOS.items():
         puntos = []
@@ -137,8 +150,12 @@ def telarana(resumen, etapa, ejes, titulo):
             puntos.append(puntos[0])
         ax.plot(*zip(*puntos), color=color, marker=marcador, markersize=4.5, linewidth=1.55,
                 linestyle=('--' if grupo == 'C0' else '-') if completa else 'none', label=nombre, zorder=4)
-    fig.legend(loc='lower center', bbox_to_anchor=(.5,.135), ncol=2, frameon=False, fontsize=9)
+    fig.legend(loc='lower center', bbox_to_anchor=(.5,.35 if general else .135), ncol=2, frameon=False, fontsize=9)
     return fig
+
+
+def conteos(filas, clave):
+    return ' · '.join(f'{grupo} n={filas.get((grupo, clave), {}).get("n", 0)}' for grupo in GRUPOS)
 
 
 def generar_graficas(raiz, etapa, resumen_doctoral, resumen_pregrado, resumen_normalizados):
@@ -147,15 +164,20 @@ def generar_graficas(raiz, etapa, resumen_doctoral, resumen_pregrado, resumen_no
     with mpl.rc_context({'font.family': 'DejaVu Sans', 'font.size': 10, 'svg.fonttype': 'none',
                          'svg.hashsalt': 'cacaofv'}):
         dimensiones = {k: v for k,v in DIMENSIONES.items() if k != 'IS'}
+        activos = {fila['indice'] for fila in resumen_normalizados}
+        ejes_general = {clave: etiqueta for etiquetas in INDICADORES.values()
+                        for clave, etiqueta in etiquetas.items() if clave in activos}
         especificaciones = [
             ('doctoral', 'beneficio_familiar', 'Beneficio familiar', 'Mediana y rango intercuartílico del beneficio familiar en C0 y C1.',
              partial(beneficio, resumen_doctoral, etapa)),
-            ('pregrado', 'biograma_dimensiones', 'Biograma por dimensiones', 'Telaraña de medias de las dimensiones económica, ecológica y social.',
+            ('pregrado', 'biograma_indicadores', 'Biograma general por indicadores',
+             f'Telaraña con {len(ejes_general)} indicadores agrupados en las dimensiones económica, ecológica y social.',
+             partial(telarana, resumen_normalizados, etapa, ejes_general, 'Biograma general de sostenibilidad', general=True)),
+            ('pregrado', 'biograma_dimensiones', 'Resumen por dimensiones', 'Telaraña de medias de las dimensiones económica, ecológica y social.',
              partial(telarana, resumen_pregrado, etapa, dimensiones, 'Biograma de sostenibilidad por dimensiones')),
             ('pregrado', 'sostenibilidad', 'Dimensiones e índice global', 'Medias de las tres dimensiones y del índice global en C0 y C1.',
              partial(sostenibilidad, resumen_pregrado, etapa)),
         ]
-        activos = {fila['indice'] for fila in resumen_normalizados}
         for dimension, etiquetas in INDICADORES.items():
             ejes = {clave: nombre for clave,nombre in etiquetas.items() if clave in activos}
             nombre = dimensiones[dimension].lower()

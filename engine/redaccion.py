@@ -114,7 +114,7 @@ Cada dimensión se calculó como el promedio de sus indicadores normalizados vá
 
 El índice global requirió las tres dimensiones y usó estas ponderaciones ({pesos}). Se examinó una variante de sensibilidad que restringe la dimensión social a los indicadores activos de continuidad alimentaria, transporte y satisfacción, con datos completos para ese conjunto. La condición de certificación se utilizó como variable de agrupación. Se resumieron las dimensiones y el índice por grupo y se calculó la diferencia de medias C1 menos C0.
 
-Los biogramas muestran las medias de C0 y C1 por dimensión y, en las telarañas de detalle, por indicador normalizado. Los ejes comparten una escala de 0 a 1 y cada media indica su número de hogares válidos. El índice global se presenta por separado como medida de síntesis.
+El Biograma general compara las medias de C0 y C1 con un eje por indicador normalizado activo. Los ejes se agrupan en las dimensiones económica, ecológica y social. La escala común va de 0 a 1 y se informa cuántos hogares aportaron datos válidos a cada media. Las telarañas por dimensión permiten examinar los indicadores de cada grupo de ejes. El índice global se presenta por separado como medida de síntesis.
 
 """
         fuentes = (SARANDON, SEPULVEDA, PACHAY, WELCH, HOLM)

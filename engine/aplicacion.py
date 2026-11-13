@@ -5,7 +5,7 @@ import pandas as pd
 from esquema import CODIGOS, CAMPOS, CERT_COLS, VENTAS_COLS, ESTADOS_COLS
 from comun import ErrorDatos
 
-VERSION = '0.4.0'
+VERSION = '0.5.0'
 PERIODO = ('2025-11-01', '2026-10-31')
 
 def texto(v):

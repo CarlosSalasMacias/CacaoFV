@@ -66,7 +66,12 @@ class Motor(unittest.TestCase):
             self.assertIn('doctoral/reporte.html',f.namelist());self.assertIn('pregrado/indices_hogares.csv',f.namelist())
             self.assertEqual([g['nombre'] for g in r['graficas']['doctoral']],['beneficio_familiar'])
             self.assertEqual([g['nombre'] for g in r['graficas']['pregrado']],
-                             ['biograma_dimensiones','sostenibilidad','biograma_economica','biograma_ecologica','biograma_social'])
+                             ['biograma_indicadores','biograma_dimensiones','sostenibilidad','biograma_economica','biograma_ecologica','biograma_social'])
+            import xml.etree.ElementTree as ET
+            radar=ET.fromstring(f.read('pregrado/graficas/biograma_indicadores.svg'))
+            etiquetas=[n.text for n in radar.iter('{http://www.w3.org/2000/svg}text')]
+            for codigo in [f'{prefijo}{i}' for prefijo,total in [('E',5),('A',4),('S',6)] for i in range(1,total+1)]:
+                self.assertEqual(etiquetas.count(codigo),1)
             for tesis, graficas in r['graficas'].items():
                 for g in graficas:
                     ruta=f'{tesis}/graficas/{g["nombre"]}'
